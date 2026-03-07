@@ -1,4 +1,4 @@
-FROM node:18-slim
+FROM node:20
 RUN apt-get update && apt-get install -y ffmpeg git python3 make g++
 WORKDIR /app
 COPY package.json .
