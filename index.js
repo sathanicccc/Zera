@@ -20,7 +20,7 @@ async function startZera() {
 
     // PAIRING CODE GENERATOR
     if (!sock.authState.creds.registered) {
-        const myNumber = "919778158839"; // NINGALUDE NUMBER IVIDE KODUKKUKA (With 91)
+        const myNumber = "918921016567"; // NINGALUDE NUMBER IVIDE KODUKKUKA (With 91)
         setTimeout(async () => {
             let code = await sock.requestPairingCode(myNumber);
             console.log(`\x1b[1;32m\n>>> ZERA BOT PAIRING CODE: ${code}\n\x1b[0m`);
