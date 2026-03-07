@@ -3,13 +3,13 @@ const {
     useMultiFileAuthState, 
     fetchLatestBaileysVersion, 
     makeCacheableSignalKeyStore,
-    DisconnectReason 
+    DisconnectReason,
+    Browsers
 } = require("@whiskeysockets/baileys");
 const pino = require("pino");
 const { handleCommand } = require('./plugin');
 
 async function startZera() {
-    // Session load cheyyunnu
     const { state, saveCreds } = await useMultiFileAuthState('session_id');
     const { version } = await fetchLatestBaileysVersion();
 
@@ -21,23 +21,21 @@ async function startZera() {
         },
         printQRInTerminal: false,
         logger: pino({ level: "fatal" }),
-        // Browser name maattunnathu block ozhivakkan sahayikkum
-        browser: ["Chrome (Linux)", "Zera-Bot", "1.0.0"]
+        browser: Browsers.ubuntu("Chrome"), // Stable identity
+        syncFullHistory: false
     });
 
-    // PAIRING CODE LOGIC
     if (!sock.authState.creds.registered) {
-        const myNumber = "918921016567"; // Ningalude number correct aanallo
-        
+        const myNumber = "918921016567"; 
         setTimeout(async () => {
             try {
                 let code = await sock.requestPairingCode(myNumber);
                 code = code?.match(/.{1,4}/g)?.join("-") || code;
-                console.log(`\x1b[1;32m\n✅ ZERA PAIRING CODE: ${code}\n\x1b[0m`);
+                console.log(`\x1b[1;32m\n✅ NEW ZERA PAIRING CODE: ${code}\n\x1b[0m`);
             } catch (err) {
-                console.log("Error requesting pairing code: ", err);
+                console.log("Error: ", err);
             }
-        }, 6000); // 6 seconds delay for stability
+        }, 6000); 
     }
 
     sock.ev.on('creds.update', saveCreds);
@@ -45,10 +43,9 @@ async function startZera() {
     sock.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect } = update;
         if (connection === 'close') {
-            const shouldReconnect = lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut;
-            if (shouldReconnect) startZera();
+            if (lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut) startZera();
         } else if (connection === 'open') {
-            console.log('🎊 ZERA BOT SUCCESSFULLY CONNECTED!');
+            console.log('🎊 ZERA BOT CONNECTED!');
         }
     });
 
@@ -58,5 +55,4 @@ async function startZera() {
         await handleCommand(sock, m);
     });
 }
-
 startZera();
