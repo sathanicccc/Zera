@@ -1,54 +1,39 @@
-const { 
-    default: makeWASocket, 
-    useMultiFileAuthState, 
-    fetchLatestBaileysVersion, 
-    makeCacheableSignalKeyStore,
-    DisconnectReason,
-    Browsers
-} = require("@whiskeysockets/baileys");
+const { default: makeWASocket, useMultiFileAuthState } = require("@whiskeysockets/baileys");
 const pino = require("pino");
 
 async function startZera() {
+    // Railway Variables-il ninnu Session ID edukkunnu
     const { state, saveCreds } = await useMultiFileAuthState('session_id');
-    const { version } = await fetchLatestBaileysVersion();
 
     const sock = makeWASocket({
-        version,
-        auth: {
-            creds: state.creds,
-            keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" })),
-        },
+        auth: state,
         printQRInTerminal: false,
         logger: pino({ level: "fatal" }),
-        // Desktop browser identity (IMPORTANT)
-        browser: Browsers.macOS("Desktop"),
-        syncFullHistory: false
+        browser: ["Zera Bot", "MacOS", "3.0.0"]
     });
-
-    if (!sock.authState.creds.registered) {
-        const myNumber = "918921016567"; 
-        setTimeout(async () => {
-            try {
-                let code = await sock.requestPairingCode(myNumber);
-                code = code?.match(/.{1,4}/g)?.join("-") || code;
-                console.log(`\n\x1b[1;32m>>> NEW PAIRING CODE: ${code}\x1b[0m\n`);
-            } catch (err) {
-                console.log("Error: ", err);
-            }
-        }, 10000); // 10 seconds delay
-    }
 
     sock.ev.on('creds.update', saveCreds);
 
     sock.ev.on('connection.update', (update) => {
-        const { connection, lastDisconnect } = update;
+        const { connection } = update;
         if (connection === 'open') {
-            console.log('✅ CONNECTED SUCCESSFULLY!');
+            console.log('🎊 ZERA BOT IS ONLINE AND CONNECTED!');
         }
         if (connection === 'close') {
-            const shouldReconnect = lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut;
-            if (shouldReconnect) startZera();
+            startZera(); // Auto Reconnect
+        }
+    });
+
+    // Simple Ping Command (Example)
+    sock.ev.on('messages.upsert', async (chat) => {
+        const msg = chat.messages[0];
+        if (!msg.message) return;
+        const text = msg.message.conversation || msg.message.extendedTextMessage?.text;
+
+        if (text === '.ping') {
+            await sock.sendMessage(msg.key.remoteJid, { text: 'Pong! 🚀' });
         }
     });
 }
+
 startZera();
