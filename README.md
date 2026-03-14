@@ -30,4 +30,4 @@ Zera is a high-speed WhatsApp bot with the latest 2026 features. It is designed 
 | `.ping` | Check bot speed |
 
 ---
-Built with ❤️ by [Your Name]
+Built with ❤️ by [♱𝐒ᴀ᪳ᴛ͢ʜ͛ᴀ͓͛ɴ⃞ server ♱]
